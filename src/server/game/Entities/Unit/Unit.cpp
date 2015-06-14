@@ -2929,14 +2929,22 @@ void Unit::_UpdateAutoRepeatSpell()
     if (m_AutoRepeatFirstCast && getAttackTimer(RANGED_ATTACK) < 500 && m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id != 75)
         setAttackTimer(RANGED_ATTACK, 500);
     m_AutoRepeatFirstCast = false;
-
+	
     // castroutine
     if (isAttackReady(RANGED_ATTACK))
     {
         // Check if able to cast
         if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->CheckCast(true) != SPELL_CAST_OK)
         {
-            InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+            if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Id != 75)
+                InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+            // else if its Auto Shot dont interrupt whole process but let the player know he cant shoot in his currently pos
+            else
+            {
+                Spell* currSpell = new Spell(this, m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo, TRIGGERED_FULL_MASK);
+                currSpell->SendInterrupted(0);
+                currSpell->SendCastResult(SPELL_FAILED_INTERRUPTED);
+            }
             return;
         }
 
